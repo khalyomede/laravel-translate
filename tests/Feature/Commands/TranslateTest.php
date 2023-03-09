@@ -23,8 +23,13 @@ final class TranslateTest extends TestCase
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
         config([
-            "translate.include" => [
-                "tests/misc/resources/views",
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/book",
+                ],
             ],
         ]);
 
@@ -39,8 +44,13 @@ final class TranslateTest extends TestCase
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
         config([
-            "translate.include" => [
-                "tests/misc/app",
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                ],
             ],
         ]);
 
@@ -57,8 +67,13 @@ final class TranslateTest extends TestCase
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
         config([
-            "translate.include" => [
-                "tests/misc/resources/views",
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/book",
+                ]
             ],
         ]);
 
@@ -79,8 +94,13 @@ final class TranslateTest extends TestCase
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
         config([
-            "translate.include" => [
-                "tests/misc/app",
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                ],
             ],
         ]);
 
@@ -175,7 +195,7 @@ final class TranslateTest extends TestCase
                 "sort_keys" => true,
                 "include" => [
                     "tests/misc/app",
-                    "tests/misc/resources/views",
+                    "tests/misc/resources/views/book",
                 ],
             ],
         ]);
@@ -207,7 +227,7 @@ final class TranslateTest extends TestCase
                 "sort_keys" => false,
                 "include" => [
                     "tests/misc/app",
-                    "tests/misc/resources/views",
+                    "tests/misc/resources/views/book",
                 ],
             ],
         ]);
@@ -352,6 +372,30 @@ final class TranslateTest extends TestCase
             "Adventure" => "",
             "Drama" => "",
             "Fantastic" => "",
+        ]);
+    }
+
+    public function testDontPullKeysFromCommentOfBladeFile(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/auth",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Email" => "",
+            "Email Password Reset Link" => "",
         ]);
     }
 }

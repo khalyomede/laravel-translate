@@ -15,7 +15,9 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\ParserFactory;
+use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\ArgumentGroupNode;
+use Stillat\BladeParser\Nodes\CommentNode;
 use Stillat\BladeParser\Parser\DocumentParser;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -68,7 +70,7 @@ final class Translate extends Command
         }
 
         // In dry-run mode, return non-zero code if some missing keys have been found
-        return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty() > 0
+        return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty()
             ? 1
             : 0;
     }
@@ -223,7 +225,8 @@ final class Translate extends Command
             if (self::isBladeFile($filePath)) {
                 $bladeParser->parse($fileContent);
 
-                $nodes = $bladeParser->getNodes();
+                $nodes = collect($bladeParser->getNodes())
+                    ->filter(fn (AbstractNode $node): bool => !($node instanceof CommentNode));
 
                 foreach ($nodes as $node) {
                     if (collect(["lang", "choice"])->contains($node->content)) {
@@ -232,15 +235,7 @@ final class Translate extends Command
 
                         assert($arguments instanceof ArgumentGroupNode);
 
-                        $values = $arguments->getValues();
-
-                        $firstArgument = $values->first();
-
-                        assert(is_string($firstArgument));
-
-                        $firstArgument = preg_replace('/^(\'|")|(\'|")$/', "", $firstArgument);
-
-                        assert(is_string($firstArgument));
+                        $firstArgument = $arguments->getStringValue();
 
                         $translationKeys->push($firstArgument);
                     } else {
