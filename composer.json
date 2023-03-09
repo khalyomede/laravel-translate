@@ -54,5 +54,12 @@
             "composer run updates",
             "composer run security"
         ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Khalyomede\\LaravelTranslate\\TranslateServiceProvider"
+            ]
+        }
     }
 }
