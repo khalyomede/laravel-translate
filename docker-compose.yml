@@ -1,0 +1,8 @@
+version: "3"
+services:
+  composer:
+    build: ./docker/php/8.2
+    entrypoint: composer
+    working_dir: /home/ubuntu/app
+    volumes:
+      - .:/home/ubuntu/app
