@@ -19,6 +19,7 @@ use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\ArgumentGroupNode;
 use Stillat\BladeParser\Nodes\CommentNode;
 use Stillat\BladeParser\Parser\DocumentParser;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Finder\SplFileInfo;
 
 final class Translate extends Command
@@ -37,8 +38,12 @@ final class Translate extends Command
     {
         self::$phpKeys = collect();
 
+        $this->info("Fetching langs...");
+
         // Get all langs
         $langs = self::getLangs();
+
+        $this->info("Fetching files to parse...");
 
         // Get all files
         $filePaths = self::getFilePaths();
@@ -46,8 +51,14 @@ final class Translate extends Command
         // Prepare new keys found
         $newKeys = collect();
 
+        $this->info("Fetching translation keys...");
+
         // Get all translation keys
         $foundKeys = self::getAllTranslationKeys($filePaths);
+
+        $this->info("Found {$foundKeys->count()} keys across {$filePaths->count()} files for {$langs->count()} lang(s).");
+
+        $bar = $this->output->createProgressBar($langs->count());
 
         foreach ($langs as $lang) {
             // Get all keys of lang file
@@ -67,7 +78,13 @@ final class Translate extends Command
             if ($this->shouldWriteOnFile()) {
                 self::writeOnFile($lang, $newKeys);
             }
+
+            $bar->advance();
         }
+
+        $bar->finish();
+
+        $this->line("");
 
         // In dry-run mode, return non-zero code if some missing keys have been found
         return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty()
