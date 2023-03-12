@@ -22,6 +22,7 @@ I create this package to help me find out which keys I missed to translate befor
 - Can use a `--dry-run` option to only check for missing keys (and returns a **non zero code**, useful to put in a CI)
 - Can sort translated keys
 - can remove unused keys
+- Can translate Models's column values
 
 ## Installation
 
