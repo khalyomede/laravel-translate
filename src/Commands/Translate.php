@@ -215,7 +215,8 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
+        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
+        {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
@@ -253,6 +254,10 @@ final class Translate extends Command
 
                         $firstArgument = $arguments->getStringValue();
 
+                        if (self::langKeyIsShortKey($firstArgument)) {
+                            continue;
+                        }
+
                         $translationKeys->push($firstArgument);
                     } else {
                         $functions = ["__", "trans", "trans_choice"];
@@ -281,6 +286,8 @@ final class Translate extends Command
                                         if ($argument->value instanceof String_) {
                                             $key = $argument->value->value;
 
+                                            if (self::langKeyIsShortKey($key));
+
                                             $translationKeys->push($key);
                                         }
                                     }
@@ -299,6 +306,8 @@ final class Translate extends Command
                 $ast = $phpTraverser->traverse($ast);
 
                 foreach (self::$phpKeys as $phpKey) {
+                    if (self::langKeyIsShortKey($phpKey));
+
                     $translationKeys->push($phpKey);
                 }
             }
@@ -343,5 +352,13 @@ final class Translate extends Command
     private static function isBladeFile(string $path): bool
     {
         return str_ends_with($path, ".blade.php");
+    }
+
+    private static function langKeyIsShortKey(string $key): bool
+    {
+        $looksLikeShortKey = preg_match("//", $key) === 1;
+        $doesntContainSpaces = preg_match("/\s+/", $key) !== 1;
+
+        return $looksLikeShortKey && $doesntContainSpaces;
     }
 }

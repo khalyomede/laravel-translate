@@ -310,7 +310,7 @@ final class TranslateTest extends TestCase
         ]);
     }
 
-    public function testKeepsKeysUnusedWhenFindingKeysFroModelsData(): void
+    public function testKeepsKeysUnusedWhenFindingKeysFromModelsData(): void
     {
         $this->seed(BookTypeSeeder::class);
 
@@ -397,5 +397,33 @@ final class TranslateTest extends TestCase
             "Email" => "",
             "Email Password Reset Link" => "",
         ]);
+    }
+
+    public function testItIgnoresKeysWithDotsAndUnderscores(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/user",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "user.index.title" => "",
+        ]);
+    }
+
+    public function testItFormatsTranslationFileWithReturnLinesAndFourSpacesIndentation(): void
+    {
+        $this->markTestIncomplete();
     }
 }
