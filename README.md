@@ -51,13 +51,20 @@ php artisan vendor:publish --tag "translate"
 Call the command using `--dry-run` to only check for missing keys without writing the missing keys.
 
 ```bash
-php artisan translate fr --dry-run
+php artisan translate --dry-run
 ```
 
-You can add more than one lang in parameter.
+You can add more langs by editing the `config/translate.php` file.
 
-```bash
-php artisan translate fr es it pt --dry-run
+```php
+return [
+  "langs" => [
+    "fr",
+    "en",
+    "pt",
+  ],
+  // ...
+];
 ```
 
 ### 2. Add missing translations
@@ -65,13 +72,20 @@ php artisan translate fr es it pt --dry-run
 Call the command without flags to actually write the missing keys.
 
 ```bash
-php artisan translate fr
+php artisan translate
 ```
 
-You can add more than one lang in parameter.
+You can add more langs by editing the `config/translate.php` file.
 
-```bash
-php artisan translate fr es it pt
+```php
+return [
+  "langs" => [
+    "fr",
+    "en",
+    "pt",
+  ],
+  // ...
+];
 ```
 
 ### 3. Customize which folders to parse
