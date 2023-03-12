@@ -182,7 +182,7 @@ final class Translate extends Command
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
             ])
-            ->toJson();
+            ->toJson(JSON_PRETTY_PRINT);
     }
 
     private static function langFilePath(string $lang): string
@@ -215,8 +215,7 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
-        {
+        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {

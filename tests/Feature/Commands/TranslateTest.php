@@ -424,6 +424,25 @@ final class TranslateTest extends TestCase
 
     public function testItFormatsTranslationFileWithReturnLinesAndFourSpacesIndentation(): void
     {
-        $this->markTestIncomplete();
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $expected = File::get(__DIR__ . "/../../misc/resources/lang/fr.json");
+
+        $this->assertEquals(1, preg_match('/^{\n\s{4}".*\n}$/ms', $expected));
     }
 }
