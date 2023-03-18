@@ -90,8 +90,10 @@ final class Translate extends Command
 
         $bar->finish();
 
+        $this->line("");
+
         // Display number of added keys (without taking into account current keys)
-        $this->line("Added {$addedKeys->count()} new key(s) on each lang files.");
+        $this->info("Added {$addedKeys->count()} new key(s) on each lang files.");
 
         // In dry-run mode, return non-zero code if some missing keys have been found
         return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty()
@@ -199,7 +201,8 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
+        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
+        {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
