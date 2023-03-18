@@ -525,4 +525,29 @@ final class TranslateTest extends TestCase
 
         $this->assertTrue(str_contains(File::get(__DIR__ . "/../../misc/resources/lang/fr.json"), "Impossible de procéder à la vérification anti-robot."));
     }
+
+    public function testDoesNotAddShortKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app/Rules",
+                    "tests/misc/resources/views/contact",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "contact.create.page_title" => "",
+            "validation.google_recaptcha_v3" => "",
+        ]);
+    }
 }
