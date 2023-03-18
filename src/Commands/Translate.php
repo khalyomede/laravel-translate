@@ -289,7 +289,9 @@ final class Translate extends Command
                 $ast = $phpTraverser->traverse($ast);
 
                 foreach (self::$phpKeys as $phpKey) {
-                    if (self::langKeyIsShortKey($phpKey));
+                    if (self::langKeyIsShortKey($phpKey)) {
+                        continue;
+                    }
 
                     $translationKeys->push($phpKey);
                 }

@@ -582,4 +582,29 @@ final class TranslateTest extends TestCase
             ->assertSuccessful()
             ->expectsOutputToContain("Added 1 new key(s) on each lang files.");
     }
+
+    public function testDoesNotAddShortKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app/Rules",
+                    "tests/misc/resources/views/contact",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "contact.create.page_title" => "",
+            "validation.google_recaptcha_v3" => "",
+        ]);
+    }
 }
