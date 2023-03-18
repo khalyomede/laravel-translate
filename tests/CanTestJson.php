@@ -6,6 +6,17 @@ use Illuminate\Support\Facades\File;
 
 trait CanTestJson
 {
+    public function assertFileDoesntContainDuplicatedKeys(string $path): void
+    {
+        $content = File::get($path);
+        $json = json_decode($content, associative: true, flags: JSON_THROW_ON_ERROR) ?? [];
+
+        assert(is_array($json));
+
+        $keys = collect($json)->keys();
+
+        $this->assertEquals($keys->count(), $keys->unique()->count());
+    }
     /**
      * @param array<string, string> $json
      */

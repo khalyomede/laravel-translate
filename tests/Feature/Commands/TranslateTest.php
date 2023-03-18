@@ -475,4 +475,26 @@ final class TranslateTest extends TestCase
             "List of books" => "Liste des livres",
         ]);
     }
+
+    public function testItDoesntAddNewKeysInDuplicate(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainDuplicatedKeys(__DIR__ . "/../../misc/resources/lang/fr.json");
+    }
 }
