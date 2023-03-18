@@ -48,9 +48,6 @@ final class Translate extends Command
         // Get all files
         $filePaths = self::getFilePaths();
 
-        // Prepare new keys found
-        $newKeys = collect();
-
         $this->info("Fetching translation keys...");
 
         // Get all translation keys
@@ -96,7 +93,7 @@ final class Translate extends Command
         $this->info("Added {$addedKeys->count()} new key(s) on each lang files.");
 
         // In dry-run mode, return non-zero code if some missing keys have been found
-        return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty()
+        return !$this->shouldWriteOnFile() && $addedKeys->isNotEmpty()
             ? 1
             : 0;
     }
