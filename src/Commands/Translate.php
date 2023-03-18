@@ -145,9 +145,9 @@ final class Translate extends Command
     }
 
     /**
-     * @param Collection<int, string> $items
+     * @param Collection<string, string> $items
      *
-     * @return Collection<int, string>
+     * @return Collection<string, string>
      */
     private function sortKeys(Collection $items): Collection
     {
@@ -155,7 +155,7 @@ final class Translate extends Command
     }
 
     /**
-     * @param Collection<int, string> $items
+     * @param Collection<string, string> $items
      */
     private static function writeOnFile(string $lang, Collection $items): void
     {
@@ -183,7 +183,7 @@ final class Translate extends Command
     /**
      * @param Collection<int, string> $filePaths
      *
-     * @return Collection<int, string>
+     * @return Collection<string, string>
      */
     private static function getAllTranslationKeys(Collection $filePaths): Collection
     {
@@ -192,8 +192,7 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
-        {
+        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
