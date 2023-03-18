@@ -67,7 +67,7 @@ final class Translate extends Command
             // Get final keys
             $newKeys = self::shouldRemoveMissingKeys()
                 ? $foundKeys
-                : self::addNewKeys($currentKeys, $foundKeys);
+                : $foundKeys->merge($currentKeys);
 
             // Sort keys if needed
             $newKeys = self::shouldSortKeys()
@@ -145,44 +145,21 @@ final class Translate extends Command
     }
 
     /**
-     * @param Collection<int, string> $currentKeys
-     * @param Collection<int, string> $newKeys
+     * @param Collection<string, string> $items
      *
-     * @return Collection<int, string>
-     */
-    private function addNewKeys(Collection $currentKeys, Collection $newKeys): Collection
-    {
-        return $currentKeys->concat($newKeys);
-    }
-
-    /**
-     * @param Collection<int, string> $items
-     *
-     * @return Collection<int, string>
+     * @return Collection<string, string>
      */
     private function sortKeys(Collection $items): Collection
     {
-        return $items->sort();
+        return $items->sortKeys();
     }
 
     /**
-     * @param Collection<int, string> $items
+     * @param Collection<string, string> $items
      */
     private static function writeOnFile(string $lang, Collection $items): void
     {
-        File::put(self::langFilePath($lang), self::itemsToJson($items));
-    }
-
-    /**
-     * @param Collection<int, string> $items
-     */
-    private static function itemsToJson(Collection $items): string
-    {
-        return $items->flip()
-            ->mapWithKeys(fn (int $key, string $value): array => [
-                $value => "",
-            ])
-            ->toJson(JSON_PRETTY_PRINT);
+        File::put(self::langFilePath($lang), $items->toJson(JSON_PRETTY_PRINT));
     }
 
     private static function langFilePath(string $lang): string
@@ -200,13 +177,13 @@ final class Translate extends Command
 
         assert(is_array($keysAndValues));
 
-        return collect($keysAndValues)->keys();
+        return collect($keysAndValues);
     }
 
     /**
      * @param Collection<int, string> $filePaths
      *
-     * @return Collection<int, string>
+     * @return Collection<string, string>
      */
     private static function getAllTranslationKeys(Collection $filePaths): Collection
     {
@@ -312,7 +289,12 @@ final class Translate extends Command
             }
         }
 
-        return $translationKeys->concat(self::modelsTranslationKeys());
+        return $translationKeys
+            ->concat(self::modelsTranslationKeys())
+            ->flip()
+            ->mapWithKeys(fn (int $key, string $value): array => [
+                $value => "",
+            ]);
     }
 
     /**

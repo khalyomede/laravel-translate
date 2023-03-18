@@ -339,10 +339,10 @@ final class TranslateTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFileContainsExactJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
-            "Book copied." => "",
             "Drama" => "",
             "Fantastic" => "",
             "Adventure" => "",
+            "Book copied." => "",
         ]);
     }
 
@@ -444,5 +444,35 @@ final class TranslateTest extends TestCase
         $expected = File::get(__DIR__ . "/../../misc/resources/lang/fr.json");
 
         $this->assertEquals(1, preg_match('/^{\n\s{4}".*\n}$/ms', $expected));
+    }
+
+    public function testDoesntErasePreviouslyFilledKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        $content = json_encode(["List of books" => "Liste des livres"], flags: JSON_PRETTY_PRINT);
+
+        assert(is_string($content));
+
+        File::put(__DIR__ . "/../../misc/resources/lang/fr.json", $content);
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "List of books" => "Liste des livres",
+        ]);
     }
 }
