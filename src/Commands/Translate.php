@@ -69,7 +69,7 @@ final class Translate extends Command
 
             // Get final keys
             $newKeys = self::shouldRemoveMissingKeys()
-                ? $foundKeys
+                ? self::removeMissingKeys($currentKeys, $foundKeys)
                 : $foundKeys->merge($currentKeys);
 
             // Sort keys if needed
@@ -174,7 +174,7 @@ final class Translate extends Command
     }
 
     /**
-     * @return Collection<int, string>
+     * @return Collection<string, string>
      */
     private function getLangKeys(string $lang): Collection
     {
@@ -354,7 +354,7 @@ final class Translate extends Command
     }
 
     /**
-     * @param Collection<int, string> $currentKeys
+     * @param Collection<string, string> $currentKeys
      * @param Collection<string, string> $newKeys
      *
      * @return Collection<string, string>
@@ -362,5 +362,26 @@ final class Translate extends Command
     private static function getKeyThatWillBeAdded(Collection $currentKeys, Collection $newKeys): Collection
     {
         return $newKeys->diffKeys($currentKeys);
+    }
+
+    /**
+     * @param Collection<string, string> $currentKeys
+     * @param Collection<string, string> $newKeys
+     *
+     * @return Collection<string, string>
+     */
+    private static function removeMissingKeys(Collection $currentKeys, Collection $newKeys): Collection
+    {
+        return $newKeys->mapWithKeys(function (string $value, string $key) use ($currentKeys): array {
+            if ($currentKeys->has($key)) {
+                return [
+                    $key => $currentKeys->get($key) ?? $value,
+                ];
+            }
+
+            return [
+                $key => $value,
+            ];
+        });
     }
 }
