@@ -56,6 +56,9 @@ final class Translate extends Command
         // Get all translation keys
         $foundKeys = self::getAllTranslationKeys($filePaths);
 
+        // Keep track of added keys for end output
+        $addedKeys = collect();
+
         $this->info("Found {$foundKeys->count()} keys across {$filePaths->count()} files for {$langs->count()} lang(s).");
 
         $bar = $this->output->createProgressBar($langs->count());
@@ -63,6 +66,9 @@ final class Translate extends Command
         foreach ($langs as $lang) {
             // Get all keys of lang file
             $currentKeys = self::getLangKeys($lang);
+
+            // Figure out which new keys will be added
+            $addedKeys = self::getKeyThatWillBeAdded($currentKeys, $foundKeys);
 
             // Get final keys
             $newKeys = self::shouldRemoveMissingKeys()
@@ -84,7 +90,8 @@ final class Translate extends Command
 
         $bar->finish();
 
-        $this->line("");
+        // Display number of added keys (without taking into account current keys)
+        $this->line("Added {$addedKeys->count()} new key(s) on each lang files.");
 
         // In dry-run mode, return non-zero code if some missing keys have been found
         return !$this->shouldWriteOnFile() && $newKeys->isNotEmpty()
@@ -343,5 +350,16 @@ final class Translate extends Command
         $doesntContainSpaces = preg_match("/\s+/", $key) !== 1;
 
         return $looksLikeShortKey && $doesntContainSpaces;
+    }
+
+    /**
+     * @param Collection<int, string> $currentKeys
+     * @param Collection<string, string> $newKeys
+     *
+     * @return Collection<string, string>
+     */
+    private static function getKeyThatWillBeAdded(Collection $currentKeys, Collection $newKeys): Collection
+    {
+        return $newKeys->diffKeys($currentKeys);
     }
 }

@@ -526,6 +526,63 @@ final class TranslateTest extends TestCase
         $this->assertTrue(str_contains(File::get(__DIR__ . "/../../misc/resources/lang/fr.json"), "Impossible de procéder à la vérification anti-robot."));
     }
 
+    public function testDisplaysHowManyNewKeysHaveBeenAddedToFile(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful()
+            ->expectsOutputToContain("Added 9 new key(s) on each lang files.");
+    }
+
+    public function testDisplayOnlyNewKeysAddedToFileWithoutTakingIntoAccountCurrentExistingKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        $content = json_encode([
+            "Book saved." => "",
+            "Book updated." => "",
+            "Deleted :count books." => "",
+            "List of books" => "",
+            "Welcome to the list of books." => "",
+            "This list shows an excerpt of each books." => "",
+            ":count books displayed." => "",
+            ":count authors found." => "",
+        ], flags: JSON_PRETTY_PRINT);
+
+        assert(is_string($content));
+
+        File::put(__DIR__ . "/../../misc/resources/lang/fr.json", $content);
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful()
+            ->expectsOutputToContain("Added 1 new key(s) on each lang files.");
+    }
+
     public function testDoesNotAddShortKeys(): void
     {
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
