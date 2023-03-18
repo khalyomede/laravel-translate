@@ -60,6 +60,44 @@ final class TranslateTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function testReturnsZeroCodeIfNoNewKeysHaveBeenFound(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        $content = json_encode([
+            ":count authors found." => "",
+            ":count books displayed." => "",
+            "Book saved." => "",
+            "Book updated." => "",
+            "Deleted :count books." => "",
+            "List of books" => "",
+            "This list shows an excerpt of each books." => "",
+            "Welcome to the list of books." => "",
+            "Unable to perform anti-bot validation." => "",
+        ], flags: JSON_PRETTY_PRINT);
+
+        assert(is_string($content));
+
+        File::put(__DIR__ . "/../../misc/resources/lang/fr.json", $content);
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class, [
+            "--dry-run" => true,
+        ])
+            ->assertSuccessful();
+    }
+
     public function testCanFindMissingKeysFromBladeFiles(): void
     {
         $this->assertTrue(true);
