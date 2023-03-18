@@ -10,4 +10,6 @@
     {{ trans_choice(':count books displayed.', 1, ['count' => 1]) }}
 
     @choice(':count authors found.')
+
+    @lang('List of books')
 @endsection
