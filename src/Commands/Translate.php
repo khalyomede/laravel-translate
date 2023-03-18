@@ -159,7 +159,7 @@ final class Translate extends Command
      */
     private static function writeOnFile(string $lang, Collection $items): void
     {
-        File::put(self::langFilePath($lang), $items->toJson(JSON_PRETTY_PRINT));
+        File::put(self::langFilePath($lang), $items->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
     private static function langFilePath(string $lang): string
