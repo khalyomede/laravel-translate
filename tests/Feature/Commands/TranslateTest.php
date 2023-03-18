@@ -605,6 +605,7 @@ final class TranslateTest extends TestCase
         $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
             "contact.create.page_title" => "",
             "validation.google_recaptcha_v3" => "",
+            "pagination.next" => "",
         ]);
     }
 }

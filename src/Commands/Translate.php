@@ -201,8 +201,7 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
-        {
+        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
@@ -249,8 +248,8 @@ final class Translate extends Command
                         $functions = ["__", "trans", "trans_choice"];
 
                         foreach ($functions as $function) {
-                            if (preg_match("/{{\s*" . $function . "\s*\(/", $node->content) === 1) {
-                                $code = "<?php " . preg_replace('/^{{|}}$/', "", $node->content);
+                            if (preg_match("/({{|{!!)\s*" . $function . "\s*\(\s*(\"|')/", $node->content) === 1) {
+                                $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", $node->content);
 
                                 $code = preg_match("/\s*;\s*^/", $code) === 1
                                     ? $code
@@ -272,7 +271,9 @@ final class Translate extends Command
                                         if ($argument->value instanceof String_) {
                                             $key = $argument->value->value;
 
-                                            if (self::langKeyIsShortKey($key));
+                                            if (self::langKeyIsShortKey($key)) {
+                                                continue;
+                                            }
 
                                             $translationKeys->push($key);
                                         }
