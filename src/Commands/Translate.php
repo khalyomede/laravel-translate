@@ -347,7 +347,7 @@ final class Translate extends Command
 
     private static function langKeyIsShortKey(string $key): bool
     {
-        $looksLikeShortKey = preg_match("//", $key) === 1;
+        $looksLikeShortKey = preg_match("/^\w[\w0-9_]+(.[\w0-9_]+){1,}\w$/", $key) === 1;
         $doesntContainSpaces = preg_match("/\s+/", $key) !== 1;
 
         return $looksLikeShortKey && $doesntContainSpaces;
