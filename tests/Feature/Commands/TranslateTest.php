@@ -646,4 +646,54 @@ final class TranslateTest extends TestCase
             "pagination.next" => "",
         ]);
     }
+
+    public function testDoNotEraseExistingKeysWhenUsingRemoveMissingKeysOption(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        $content = json_encode([
+            "Something" => "Quelque chose",
+            "Book saved." => "Livre sauvegardé.",
+            "Book updated." => "Livre mis à jour.",
+            "Deleted :count books." => ":count livres supprimés.",
+            "List of books" => "Liste des livres",
+            "Welcome to the list of books." => "Bienvenue sur la liste des livres.",
+            "This list shows an excerpt of each books." => "Cette lise montre un extrait de chaque livres.",
+            ":count books displayed." => ":count livres affichés.",
+            ":count authors found." => ":count auteur trouvés.",
+            "Unable to perform anti-bot validation." => "Impossible de procéder à la vérification anti-robot.",
+        ], flags: JSON_PRETTY_PRINT);
+
+        assert(is_string($content));
+
+        File::put(__DIR__ . "/../../misc/resources/lang/fr.json", $content);
+
+        config([
+            "translate" => [
+                "remove_missing_keys" => true,
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Book saved." => "Livre sauvegardé.",
+            "Book updated." => "Livre mis à jour.",
+            "Deleted :count books." => ":count livres supprimés.",
+            "List of books" => "Liste des livres",
+            "Welcome to the list of books." => "Bienvenue sur la liste des livres.",
+            "This list shows an excerpt of each books." => "Cette lise montre un extrait de chaque livres.",
+            ":count books displayed." => ":count livres affichés.",
+            ":count authors found." => ":count auteur trouvés.",
+            "Unable to perform anti-bot validation." => "Impossible de procéder à la vérification anti-robot.",
+        ]);
+    }
 }
