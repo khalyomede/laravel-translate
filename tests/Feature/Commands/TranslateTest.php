@@ -497,4 +497,32 @@ final class TranslateTest extends TestCase
 
         $this->assertFileDoesntContainDuplicatedKeys(__DIR__ . "/../../misc/resources/lang/fr.json");
     }
+
+    public function testDoesntEncodeUnicodeCharactersWhenFindingNewKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        $content = json_encode(["Unable to perform anti-bot validation." => "Impossible de procéder à la vérification anti-robot."], flags: JSON_PRETTY_PRINT);
+
+        assert(is_string($content));
+
+        File::put(__DIR__ . "/../../misc/resources/lang/fr.json", $content);
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views/register",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertTrue(str_contains(File::get(__DIR__ . "/../../misc/resources/lang/fr.json"), "Impossible de procéder à la vérification anti-robot."));
+    }
 }
