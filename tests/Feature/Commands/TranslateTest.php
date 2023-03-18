@@ -696,4 +696,29 @@ final class TranslateTest extends TestCase
             "Unable to perform anti-bot validation." => "Impossible de procéder à la vérification anti-robot.",
         ]);
     }
+
+    public function testIgnoresEmptyNewKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "remove_missing_keys" => true,
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views/subscribe",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "" => "",
+        ]);
+    }
 }

@@ -301,6 +301,7 @@ final class Translate extends Command
 
         return $translationKeys
             ->concat(self::modelsTranslationKeys())
+            ->filter(fn (string $key): bool => !empty($key))
             ->flip()
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
