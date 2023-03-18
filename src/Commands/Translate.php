@@ -67,7 +67,7 @@ final class Translate extends Command
             // Get final keys
             $newKeys = self::shouldRemoveMissingKeys()
                 ? $foundKeys
-                : self::addNewKeys($currentKeys, $foundKeys);
+                : $foundKeys->merge($currentKeys);
 
             // Sort keys if needed
             $newKeys = self::shouldSortKeys()
@@ -145,24 +145,13 @@ final class Translate extends Command
     }
 
     /**
-     * @param Collection<int, string> $currentKeys
-     * @param Collection<int, string> $newKeys
-     *
-     * @return Collection<int, string>
-     */
-    private function addNewKeys(Collection $currentKeys, Collection $newKeys): Collection
-    {
-        return $currentKeys->concat($newKeys);
-    }
-
-    /**
      * @param Collection<int, string> $items
      *
      * @return Collection<int, string>
      */
     private function sortKeys(Collection $items): Collection
     {
-        return $items->sort();
+        return $items->sortKeys();
     }
 
     /**
@@ -170,19 +159,7 @@ final class Translate extends Command
      */
     private static function writeOnFile(string $lang, Collection $items): void
     {
-        File::put(self::langFilePath($lang), self::itemsToJson($items));
-    }
-
-    /**
-     * @param Collection<int, string> $items
-     */
-    private static function itemsToJson(Collection $items): string
-    {
-        return $items->flip()
-            ->mapWithKeys(fn (int $key, string $value): array => [
-                $value => "",
-            ])
-            ->toJson(JSON_PRETTY_PRINT);
+        File::put(self::langFilePath($lang), $items->toJson(JSON_PRETTY_PRINT));
     }
 
     private static function langFilePath(string $lang): string
@@ -200,7 +177,7 @@ final class Translate extends Command
 
         assert(is_array($keysAndValues));
 
-        return collect($keysAndValues)->keys();
+        return collect($keysAndValues);
     }
 
     /**
@@ -215,7 +192,8 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
+        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
+        {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
@@ -312,7 +290,12 @@ final class Translate extends Command
             }
         }
 
-        return $translationKeys->concat(self::modelsTranslationKeys());
+        return $translationKeys
+            ->concat(self::modelsTranslationKeys())
+            ->flip()
+            ->mapWithKeys(fn (int $key, string $value): array => [
+                $value => "",
+            ]);
     }
 
     /**
