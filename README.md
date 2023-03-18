@@ -6,6 +6,7 @@ Translate missing keys in JSON file, CI friendly.
 
 - [About](#about)
 - [Features](#features)
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Examples](#examples)
 - [Tests](#tests)
@@ -23,6 +24,17 @@ I create this package to help me find out which keys I missed to translate befor
 - Can sort translated keys
 - can remove unused keys
 - Can translate Models's column values
+
+## Prerequisites
+
+This package assumes you heavily rely on JSON files instead of PHP files to store your translations. It will pull all non [short-keys](https://laravel.com/docs/10.x/localization#using-short-keys) translations (like `validation.required`, `home.headline`, ...) and put them in your "lang/[lang].json` file.
+
+I also advice to use plain English as your translation key, for various reasons:
+
+- Your files are more understandable using `__("You must subscribe to the premium plan to use this feature.")` instead of `__("plan.subscribe.warn_message")`
+- You don't spend minutes trying to figure out the best short key name to represent the text, you just use the text as the key
+- You can easily pass the "[lang].json" file to a company (or a third-party service) to translate the keys in the lang of your choice
+- If you have no countable translations, you can omit to configure the "en" translation since your keys are exactly your English translation (Laravel prints the key if the lang file is not found)
 
 ## Installation
 
