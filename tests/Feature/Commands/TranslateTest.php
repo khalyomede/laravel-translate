@@ -3,6 +3,7 @@
 namespace Tests\Feature\Commands;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Testing\PendingCommand;
 use Khalyomede\LaravelTranslate\Commands\Translate;
 use Tests\Misc\App\Models\BookType;
 use Tests\Misc\Database\Seeders\BookTypeSeeder;
@@ -619,6 +620,32 @@ final class TranslateTest extends TestCase
         $this->artisan(Translate::class)
             ->assertSuccessful()
             ->expectsOutputToContain("Added 1 new key(s) on each lang files.");
+    }
+
+    public function testDisplayNumberOfKeysInConditionalIfNewKeysHaveBeenFoundWhenUsingDryRunOption(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "remove_missing_keys" => true,
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $command = $this->artisan(Translate::class, [
+            "--dry-run" => true,
+        ]);
+
+        assert($command instanceof PendingCommand);
+
+        $command->expectsOutputToContain("9 key(s) would have been added (using --dry-run) on each lang files.");
     }
 
     public function testDoesNotAddShortKeys(): void

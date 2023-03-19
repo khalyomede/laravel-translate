@@ -90,7 +90,11 @@ final class Translate extends Command
         $this->line("");
 
         // Display number of added keys (without taking into account current keys)
-        $this->info("Added {$addedKeys->count()} new key(s) on each lang files.");
+        if ($this->shouldWriteOnFile()) {
+            $this->info("Added {$addedKeys->count()} new key(s) on each lang files.");
+        } else {
+            $this->info("{$addedKeys->count()} key(s) would have been added (using --dry-run) on each lang files.");
+        }
 
         // In dry-run mode, return non-zero code if some missing keys have been found
         return !$this->shouldWriteOnFile() && $addedKeys->isNotEmpty()
