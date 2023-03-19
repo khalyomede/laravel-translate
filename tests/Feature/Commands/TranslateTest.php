@@ -66,14 +66,18 @@ final class TranslateTest extends TestCase
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
         $content = json_encode([
-            ":count authors found." => "",
-            ":count books displayed." => "",
             "Book saved." => "",
             "Book updated." => "",
             "Deleted :count books." => "",
+            "Enter your informations" => "",
+            "Home" => "",
+            "Password reset" => "",
+            "Email address" => "",
             "List of books" => "",
-            "This list shows an excerpt of each books." => "",
             "Welcome to the list of books." => "",
+            "This list shows an excerpt of each books." => "",
+            ":count books displayed." => "",
+            ":count authors found." => "",
             "Unable to perform anti-bot validation." => "",
         ], flags: JSON_PRETTY_PRINT);
 
@@ -583,7 +587,7 @@ final class TranslateTest extends TestCase
 
         $this->artisan(Translate::class)
             ->assertSuccessful()
-            ->expectsOutputToContain("Added 9 new key(s) on each lang files.");
+            ->expectsOutputToContain("Added 13 new key(s) on each lang files.");
     }
 
     public function testDisplayOnlyNewKeysAddedToFileWithoutTakingIntoAccountCurrentExistingKeys(): void
@@ -594,6 +598,10 @@ final class TranslateTest extends TestCase
             "Book saved." => "",
             "Book updated." => "",
             "Deleted :count books." => "",
+            "Enter your informations" => "",
+            "Home" => "",
+            "Password reset" => "",
+            "Email address" => "",
             "List of books" => "",
             "Welcome to the list of books." => "",
             "This list shows an excerpt of each books." => "",
@@ -645,7 +653,7 @@ final class TranslateTest extends TestCase
 
         assert($command instanceof PendingCommand);
 
-        $command->expectsOutputToContain("9 key(s) would have been added (using --dry-run) on each lang files.");
+        $command->expectsOutputToContain("13 key(s) would have been added (using --dry-run) on each lang files.");
     }
 
     public function testDoesNotAddShortKeys(): void
@@ -746,6 +754,29 @@ final class TranslateTest extends TestCase
 
         $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
             "" => "",
+        ]);
+    }
+
+    public function testCanPullNewKeysFromBladeBindedValues(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/account",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Enter your informations" => "",
         ]);
     }
 }
