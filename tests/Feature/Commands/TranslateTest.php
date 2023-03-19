@@ -73,11 +73,17 @@ final class TranslateTest extends TestCase
             "Home" => "",
             "Password reset" => "",
             "Email address" => "",
+            ":count authors found." => "",
             "List of books" => "",
             "Welcome to the list of books." => "",
             "This list shows an excerpt of each books." => "",
             ":count books displayed." => "",
-            ":count authors found." => "",
+            "Premium" => "",
+            "Free" => "",
+            "Standard" => "",
+            "test" => "",
+            "test 2" => "",
+            "test 3" => "",
             "Unable to perform anti-bot validation." => "",
         ], flags: JSON_PRETTY_PRINT);
 
@@ -282,11 +288,11 @@ final class TranslateTest extends TestCase
             "Book saved." => "",
             "Book updated." => "",
             "Deleted :count books." => "",
+            ":count authors found." => "",
             "List of books" => "",
             "Welcome to the list of books." => "",
             "This list shows an excerpt of each books." => "",
             ":count books displayed." => "",
-            ":count authors found." => "",
         ]);
     }
 
@@ -587,7 +593,7 @@ final class TranslateTest extends TestCase
 
         $this->artisan(Translate::class)
             ->assertSuccessful()
-            ->expectsOutputToContain("Added 13 new key(s) on each lang files.");
+            ->expectsOutputToContain("Added 19 new key(s) on each lang files.");
     }
 
     public function testDisplayOnlyNewKeysAddedToFileWithoutTakingIntoAccountCurrentExistingKeys(): void
@@ -602,11 +608,17 @@ final class TranslateTest extends TestCase
             "Home" => "",
             "Password reset" => "",
             "Email address" => "",
+            ":count authors found." => "",
             "List of books" => "",
             "Welcome to the list of books." => "",
             "This list shows an excerpt of each books." => "",
             ":count books displayed." => "",
-            ":count authors found." => "",
+            "Premium" => "",
+            "Free" => "",
+            "Standard" => "",
+            "test" => "",
+            "test 2" => "",
+            "test 3" => "",
         ], flags: JSON_PRETTY_PRINT);
 
         assert(is_string($content));
@@ -653,7 +665,7 @@ final class TranslateTest extends TestCase
 
         assert($command instanceof PendingCommand);
 
-        $command->expectsOutputToContain("13 key(s) would have been added (using --dry-run) on each lang files.");
+        $command->expectsOutputToContain("19 key(s) would have been added (using --dry-run) on each lang files.");
     }
 
     public function testDoesNotAddShortKeys(): void
@@ -777,6 +789,31 @@ final class TranslateTest extends TestCase
 
         $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
             "Enter your informations" => "",
+        ]);
+    }
+
+    public function testCanPullNewKeysFromBladeComponentInnerContent(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/plan",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Free" => "",
+            "Standard" => "",
+            "Premium" => "",
         ]);
     }
 }
