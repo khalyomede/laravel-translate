@@ -1,5 +1,7 @@
 @extends('layout')
 
+@section('title', __('Page of books'))
+
 @section('content')
     @lang('List of books')
 

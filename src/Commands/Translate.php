@@ -237,6 +237,11 @@ final class Translate extends Command
                 $components = $document->allOfType(ComponentNode::class);
                 $echos = $document->allOfType(EchoNode::class);
 
+                /**
+                 * @todo To refactor once this issue is solved: https://github.com/Stillat/blade-parser/issues/15
+                 */
+                $sections = $document->findDirectivesByName("section");
+
                 // langs & choices
                 $directives = $choices->merge($langs);
 
@@ -344,6 +349,44 @@ final class Translate extends Command
                                             $translationKeys->push($key);
                                         }
                                     }
+                                }
+                            }
+                        }
+                    });
+
+                // Sections
+                $sections
+                    ->map(fn (mixed $node): string => $node instanceof DirectiveNode ? strval(preg_replace("/(^@section|\)$)/", "", $node->sourceContent)) : "")
+                    ->map(fn (mixed $nodeContent): string => explode(",", strval($nodeContent))[1] ?? "")
+                    ->filter(fn (mixed $nodeContent): bool => collect(["__", "trans", "trans_choice"])->filter(fn (string $function): bool => str_starts_with(ltrim(strval($nodeContent)), $function))->isNotEmpty())
+                    ->each(function (mixed $nodeContent) use ($phpParser, $translationKeys): void {
+                        $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", strval($nodeContent));
+
+                        $code = preg_match("/\s*;\s*^/", $code) === 1
+                            ? $code
+                            : $code . ";";
+
+                        $ast = $phpParser->parse($code);
+
+                        assert(is_array($ast));
+
+                        $expression = $ast[0];
+
+                        if ($expression instanceof Expression) {
+                            $functionCall = $expression->expr;
+
+                            if ($functionCall instanceof FuncCall) {
+                                $arguments = $functionCall->getArgs();
+                                $argument = $arguments[0];
+
+                                if ($argument->value instanceof String_) {
+                                    $key = $argument->value->value;
+
+                                    if (self::langKeyIsShortKey($key)) {
+                                        return;
+                                    }
+
+                                    $translationKeys->push($key);
                                 }
                             }
                         }
