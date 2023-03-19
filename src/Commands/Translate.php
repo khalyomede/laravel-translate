@@ -204,8 +204,7 @@ final class Translate extends Command
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
-        $phpTraverser->addVisitor(new class() extends NodeVisitorAbstract
-        {
+        $phpTraverser->addVisitor(new class () extends NodeVisitorAbstract {
             public function leaveNode(Node $node)
             {
                 if ($node instanceof FuncCall && $node->name instanceof Name && collect(["__", "trans", "trans_choice"])->contains($node->name->parts[0])) {
@@ -258,7 +257,7 @@ final class Translate extends Command
                             $nodeContents = collect();
 
                             $parameters = $node->getParameters()
-                                ->filter(fn (ParameterNode $node): bool => $node->type->name === "DynamicVariable");
+                                ->filter(fn (mixed $node): bool => $node instanceof ParameterNode && $node->type->name === "DynamicVariable");
 
                             foreach ($parameters as $parameter) {
                                 assert($parameter instanceof ParameterNode);
