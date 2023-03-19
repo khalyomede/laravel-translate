@@ -356,8 +356,7 @@ final class Translate extends Command
 
                 // Sections
                 $sections
-                    ->map(fn (mixed $node): string => $node instanceof DirectiveNode ? strval(preg_replace("/(^@section|\)$)/", "", $node->sourceContent)) : "")
-                    ->map(fn (mixed $nodeContent): string => explode(",", strval($nodeContent))[1] ?? "")
+                    ->map(fn (mixed $node): string => $node instanceof DirectiveNode ? strval($node->arguments?->getValues()[1] ?? "") : "")
                     ->filter(fn (mixed $nodeContent): bool => collect(["__", "trans", "trans_choice"])->filter(fn (string $function): bool => str_starts_with(ltrim(strval($nodeContent)), $function))->isNotEmpty())
                     ->each(function (mixed $nodeContent) use ($phpParser, $translationKeys): void {
                         $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", strval($nodeContent));
