@@ -18,6 +18,8 @@ use PhpParser\ParserFactory;
 use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\ArgumentGroupNode;
 use Stillat\BladeParser\Nodes\CommentNode;
+use Stillat\BladeParser\Nodes\Components\ComponentNode;
+use Stillat\BladeParser\Nodes\Components\ParameterNode;
 use Stillat\BladeParser\Parser\DocumentParser;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Finder\SplFileInfo;
@@ -248,35 +250,53 @@ final class Translate extends Command
                     } else {
                         $functions = ["__", "trans", "trans_choice"];
 
-                        foreach ($functions as $function) {
-                            if (preg_match("/({{|{!!)\s*" . $function . "\s*\(\s*(\"|')/", $node->content) === 1) {
-                                $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", $node->content);
+                        $nodeContents = collect([$node->content]);
 
-                                $code = preg_match("/\s*;\s*^/", $code) === 1
-                                    ? $code
-                                    : $code . ";";
+                        // Support for binded attributes like <x-form :title="__('Title')"></x-form>
+                        if ($node instanceof ComponentNode) {
+                            $nodeContents = collect();
 
-                                $ast = $phpParser->parse($code);
+                            $parameters = $node->getParameters()
+                                ->filter(fn (mixed $node): bool => $node instanceof ParameterNode && $node->type->name === "DynamicVariable");
 
-                                assert(is_array($ast));
+                            foreach ($parameters as $parameter) {
+                                assert($parameter instanceof ParameterNode);
 
-                                $expression = $ast[0];
+                                $nodeContents->push($parameter->value);
+                            }
+                        }
 
-                                if ($expression instanceof Expression) {
-                                    $functionCall = $expression->expr;
+                        foreach ($nodeContents as $nodeContent) {
+                            foreach ($functions as $function) {
+                                if (preg_match("/" . $function . "\s*\(\s*(\"|')/", $nodeContent) === 1) {
+                                    $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", $nodeContent);
 
-                                    if ($functionCall instanceof FuncCall) {
-                                        $arguments = $functionCall->getArgs();
-                                        $argument = $arguments[0];
+                                    $code = preg_match("/\s*;\s*^/", $code) === 1
+                                        ? $code
+                                        : $code . ";";
 
-                                        if ($argument->value instanceof String_) {
-                                            $key = $argument->value->value;
+                                    $ast = $phpParser->parse($code);
 
-                                            if (self::langKeyIsShortKey($key)) {
-                                                continue;
+                                    assert(is_array($ast));
+
+                                    $expression = $ast[0];
+
+                                    if ($expression instanceof Expression) {
+                                        $functionCall = $expression->expr;
+
+                                        if ($functionCall instanceof FuncCall) {
+                                            $arguments = $functionCall->getArgs();
+                                            $argument = $arguments[0];
+
+                                            if ($argument->value instanceof String_) {
+                                                $key = $argument->value->value;
+
+                                                if (self::langKeyIsShortKey($key)) {
+                                                    continue;
+                                                }
+
+                                                $translationKeys->push($key);
                                             }
-
-                                            $translationKeys->push($key);
                                         }
                                     }
                                 }
