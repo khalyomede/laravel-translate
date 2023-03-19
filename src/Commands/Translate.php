@@ -15,11 +15,15 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\ParserFactory;
+use Stillat\BladeParser\Document\Document;
 use Stillat\BladeParser\Nodes\AbstractNode;
 use Stillat\BladeParser\Nodes\ArgumentGroupNode;
 use Stillat\BladeParser\Nodes\CommentNode;
 use Stillat\BladeParser\Nodes\Components\ComponentNode;
 use Stillat\BladeParser\Nodes\Components\ParameterNode;
+use Stillat\BladeParser\Nodes\Components\ParameterType;
+use Stillat\BladeParser\Nodes\DirectiveNode;
+use Stillat\BladeParser\Nodes\EchoNode;
 use Stillat\BladeParser\Parser\DocumentParser;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Finder\SplFileInfo;
@@ -199,8 +203,6 @@ final class Translate extends Command
      */
     private static function getAllTranslationKeys(Collection $filePaths): Collection
     {
-        $bladeParser = new DocumentParser();
-
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
 
@@ -228,45 +230,44 @@ final class Translate extends Command
             $fileContent = File::get($filePath);
 
             if (self::isBladeFile($filePath)) {
-                $bladeParser->parse($fileContent);
+                $document = Document::fromText($fileContent);
 
-                $nodes = collect($bladeParser->getNodes())
-                    ->filter(fn (AbstractNode $node): bool => !($node instanceof CommentNode));
+                $langs = $document->findDirectivesByName("lang");
+                $choices = $document->findDirectivesByName("choice");
+                $components = $document->allOfType(ComponentNode::class);
+                $echos = $document->allOfType(EchoNode::class);
 
-                foreach ($nodes as $node) {
-                    if (collect(["lang", "choice"])->contains($node->content)) {
-                        /** @phpstan-ignore-next-line Access to an undefined property Stillat\BladeParser\Nodes\AbstractNode::$arguments. */
-                        $arguments = $node->arguments;
+                // langs & choices
+                $directives = $choices->merge($langs);
 
-                        assert($arguments instanceof ArgumentGroupNode);
+                foreach ($directives as $directive) {
+                    assert($directive instanceof DirectiveNode);
 
-                        $firstArgument = $arguments->getStringValue();
+                    $firstArgument = $directive
+                        ->arguments
+                        ?->getValues()
+                        ->map(fn (mixed $value): string => strval(preg_replace("/^(\"|')/", "", strval($value))))
+                        ->map(fn (mixed $value): string => strval(preg_replace("/(\"|')$/", "", strval($value))))
+                        ->first() ?? "";
 
-                        if (self::langKeyIsShortKey($firstArgument)) {
-                            continue;
-                        }
+                    if (self::langKeyIsShortKey($firstArgument)) {
+                        continue;
+                    }
 
-                        $translationKeys->push($firstArgument);
-                    } else {
-                        $functions = ["__", "trans", "trans_choice"];
+                    $translationKeys->push($firstArgument);
+                }
 
-                        $nodeContents = collect([$node->content]);
+                // Components
+                foreach ($components as $component) {
+                    assert($component instanceof ComponentNode);
 
-                        // Support for binded attributes like <x-form :title="__('Title')"></x-form>
-                        if ($node instanceof ComponentNode) {
-                            $nodeContents = collect();
+                    $component
+                        ->getParameters()
+                        ->filter(fn (mixed $parameter): bool => $parameter instanceof ParameterNode && $parameter->type === ParameterType::DynamicVariable)
+                        ->map(fn (ParameterNode $p): string => $p->value)
+                        ->each(function ($nodeContent) use ($phpParser, $translationKeys): void {
+                            $functions = ["__", "trans", "trans_choice"];
 
-                            $parameters = $node->getParameters()
-                                ->filter(fn (mixed $node): bool => $node instanceof ParameterNode && $node->type->name === "DynamicVariable");
-
-                            foreach ($parameters as $parameter) {
-                                assert($parameter instanceof ParameterNode);
-
-                                $nodeContents->push($parameter->value);
-                            }
-                        }
-
-                        foreach ($nodeContents as $nodeContent) {
                             foreach ($functions as $function) {
                                 if (preg_match("/" . $function . "\s*\(\s*(\"|')/", $nodeContent) === 1) {
                                     $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", $nodeContent);
@@ -301,9 +302,52 @@ final class Translate extends Command
                                     }
                                 }
                             }
-                        }
-                    }
+                        });
                 }
+
+                // Echos
+                $echos
+                    ->map(fn (mixed $echo): string => $echo instanceof EchoNode ? $echo->innerContent : "")
+                    ->each(function (mixed $nodeContent) use ($phpParser, $translationKeys): void {
+                        assert(is_string($nodeContent));
+
+                        $functions = ["__", "trans", "trans_choice"];
+
+                        foreach ($functions as $function) {
+                            if (preg_match("/" . $function . "\s*\(\s*(\"|')/", $nodeContent) === 1) {
+                                $code = "<?php " . preg_replace('/^({{|{!!)|(!!}|}})$/', "", $nodeContent);
+
+                                $code = preg_match("/\s*;\s*^/", $code) === 1
+                                    ? $code
+                                    : $code . ";";
+
+                                $ast = $phpParser->parse($code);
+
+                                assert(is_array($ast));
+
+                                $expression = $ast[0];
+
+                                if ($expression instanceof Expression) {
+                                    $functionCall = $expression->expr;
+
+                                    if ($functionCall instanceof FuncCall) {
+                                        $arguments = $functionCall->getArgs();
+                                        $argument = $arguments[0];
+
+                                        if ($argument->value instanceof String_) {
+                                            $key = $argument->value->value;
+
+                                            if (self::langKeyIsShortKey($key)) {
+                                                continue;
+                                            }
+
+                                            $translationKeys->push($key);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
             } elseif (self::isPhpFile($filePath)) {
                 $content = File::get($filePath);
 
@@ -372,7 +416,7 @@ final class Translate extends Command
 
     private static function langKeyIsShortKey(string $key): bool
     {
-        $looksLikeShortKey = preg_match("/^\w[\w0-9_]+(.[\w0-9_]+){1,}\w$/", $key) === 1;
+        $looksLikeShortKey = preg_match("/^\w[\w0-9_]+(\.[\w0-9_]+){1,}\w$/", $key) === 1;
         $doesntContainSpaces = preg_match("/\s+/", $key) !== 1;
 
         return $looksLikeShortKey && $doesntContainSpaces;
