@@ -846,7 +846,7 @@ final class TranslateTest extends TestCase
         ]);
     }
 
-    public function testDoesNotTranslatePhpCodeKeys(): void
+    public function testDoesNotPullTranslationKeyCorrespondingToPhpCodeKeys(): void
     {
         $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
 
@@ -866,6 +866,7 @@ final class TranslateTest extends TestCase
 
         $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
             '$user->type' => "",
+            'ucfirst($user->type)' => "",
         ]);
     }
 }

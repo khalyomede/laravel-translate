@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
@@ -413,7 +414,27 @@ final class Translate extends Command
         return $translationKeys
             ->concat(self::modelsTranslationKeys())
             ->filter(fn (string $key): bool => !empty($key))
-            ->filter(fn (string $key): bool => !(preg_match('/^\s*\$/', $key) === 1))
+            ->filter(function (string $key) use ($phpParser): bool {
+                $ast = [];
+
+                try {
+                    $ast = $phpParser->parse("<?php $key;") ?? [];
+                } catch (Exception) {
+                    return true;
+                }
+
+                $expression = $ast[0];
+
+                if (!($expression instanceof Expression)) {
+                    return false;
+                }
+
+                if ($expression->expr instanceof ConstFetch) {
+                    return true;
+                }
+
+                return false;
+            })
             ->flip()
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
