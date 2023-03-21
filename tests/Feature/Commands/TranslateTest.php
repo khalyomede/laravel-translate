@@ -845,4 +845,27 @@ final class TranslateTest extends TestCase
             "Page of books" => "",
         ]);
     }
+
+    public function testDoesNotTranslatePhpCodeKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/password-forgotten",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            '$user->type' => "",
+        ]);
+    }
 }
