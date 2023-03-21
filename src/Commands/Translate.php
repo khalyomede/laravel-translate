@@ -2,6 +2,7 @@
 
 namespace Khalyomede\LaravelTranslate\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
@@ -412,6 +413,7 @@ final class Translate extends Command
         return $translationKeys
             ->concat(self::modelsTranslationKeys())
             ->filter(fn (string $key): bool => !empty($key))
+            ->filter(fn (string $key): bool => !(preg_match('/^\s*\$/', $key) === 1))
             ->flip()
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
