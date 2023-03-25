@@ -895,4 +895,25 @@ final class TranslateTest extends TestCase
             'Book saved.' => "",
         ]);
     }
+
+    public function testDisplaysProgressBarWhenFetchingTranslationKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful()
+            ->expectsOutputToContain("12/12");
+    }
 }
