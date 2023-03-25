@@ -10,4 +10,5 @@ return [
     ],
     "models" => [],
     "ignore_keys" => [],
+    "translatables" => [],
 ];
