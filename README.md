@@ -58,6 +58,7 @@ php artisan vendor:publish --tag "translate"
 - [4. Remove translation keys not found](#4-remove-translation-keys-not-found)
 - [5. Translate models data](#5-translate-models-data)
 - [6. Add raw array of keys](#6-add-raw-array-of-keys)
+- [7. Ignore keys](#7-ignore-keys)
 
 ### 1. Check for missing translations
 
@@ -206,6 +207,22 @@ return [
     fn () => collect(InvoiceStatus::PENDING, InvoiceStatus::SENT, InvoiceStatus::PAID]),
     fn () => collect(UserRole::cases())->map(fn (UserRole $userRole): string => $userRole->toString()),
   ]
+];
+```
+
+### 7. Ignore keys
+
+If you notice something not working as you expect, you can always ignore some keys until you figure out a workaround.
+
+Head to your config file at "config/translate.php":
+
+```php
+return [
+  // ...
+  "ignore_keys" => [
+    "Welcome",
+  ]
+  // ...
 ];
 ```
 
