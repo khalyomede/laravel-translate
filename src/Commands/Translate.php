@@ -2,6 +2,7 @@
 
 namespace Khalyomede\LaravelTranslate\Commands;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -37,6 +38,9 @@ final class Translate extends Command
      */
     public static Collection $phpKeys;
 
+    public static Carbon $startTtime;
+    public static Carbon $endTime;
+
     protected $signature = "translate {--d|dry-run : Only return a non-zero code if keys are missing.}";
 
     protected $description = "Add missing translation keys for the lang of your choice.";
@@ -44,6 +48,8 @@ final class Translate extends Command
     // -- next
     public function handle(): int
     {
+        self::startMeasuringTime();
+
         self::$phpKeys = collect();
 
         $this->info("Fetching langs...");
@@ -109,6 +115,15 @@ final class Translate extends Command
         } else {
             $this->info("{$addedKeys->count()} key(s) would have been added (using --dry-run) on each lang files.");
         }
+
+        $this->line("");
+
+        self::stopMeasuringTime();
+
+        $this->table([], [
+            ["Time:", self::getElapsedTimeInMinutes()],
+            ["Max memory:", self::getMaxMemoryInMegaBytes()]
+        ], "borderless");
 
         // In dry-run mode, return non-zero code if some missing keys have been found
         return !$this->shouldWriteOnFile() && $addedKeys->isNotEmpty()
@@ -538,5 +553,25 @@ final class Translate extends Command
         assert(is_array($keysToIgnore));
 
         return collect($keysToIgnore);
+    }
+
+    private static function startMeasuringTime(): void
+    {
+        self::$startTtime = Carbon::now();
+    }
+
+    private static function stopMeasuringTime(): void
+    {
+        self::$endTime = Carbon::now();
+    }
+
+    private static function getElapsedTimeInMinutes(): string
+    {
+        return self::$endTime->diff(self::$startTtime)->format("%H:%i:%s") . " s.";
+    }
+
+    private static function getMaxMemoryInMegaBytes(): string
+    {
+        return round((memory_get_peak_usage(true) / 1_024) / 1_024, 2) . " Mb";
     }
 }
