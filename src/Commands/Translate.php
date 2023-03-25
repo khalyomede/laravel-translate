@@ -435,6 +435,7 @@ final class Translate extends Command
 
                 return false;
             })
+            ->diff(self::keysToIgnore())
             ->flip()
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
@@ -517,5 +518,17 @@ final class Translate extends Command
                 $key => $value,
             ];
         });
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    private static function keysToIgnore(): Collection
+    {
+        $keysToIgnore = config("translate.ignore_keys");
+
+        assert(is_array($keysToIgnore));
+
+        return collect($keysToIgnore);
     }
 }

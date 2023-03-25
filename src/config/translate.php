@@ -9,4 +9,5 @@ return [
         "resources/views",
     ],
     "models" => [],
+    "ignore_keys" => [],
 ];
