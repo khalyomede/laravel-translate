@@ -58,8 +58,14 @@ final class Translate extends Command
 
         $this->info("Fetching translation keys...");
 
+        $bar = $this->output->createProgressBar($filePaths->count());
+
         // Get all translation keys
-        $foundKeys = self::getAllTranslationKeys($filePaths);
+        $foundKeys = self::getAllTranslationKeys($bar, $filePaths);
+
+        $bar->finish();
+
+        $this->info("");
 
         // Keep track of added keys for end output
         $addedKeys = collect();
@@ -203,7 +209,7 @@ final class Translate extends Command
      *
      * @return Collection<string, string>
      */
-    private static function getAllTranslationKeys(Collection $filePaths): Collection
+    private static function getAllTranslationKeys(ProgressBar $bar, Collection $filePaths): Collection
     {
         $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         $phpTraverser = new NodeTraverser();
@@ -409,6 +415,8 @@ final class Translate extends Command
                     $translationKeys->push($phpKey);
                 }
             }
+
+            $bar->advance();
         }
 
         return $translationKeys
