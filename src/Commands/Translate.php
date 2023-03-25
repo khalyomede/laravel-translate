@@ -568,7 +568,7 @@ final class Translate extends Command
 
     private static function getElapsedTimeInMinutes(): string
     {
-        return self::$endTime->diff(self::$startTtime)->format("%H:%i:%s") . " s.";
+        return self::$endTime->diff(self::$startTtime)->format("%H:%I:%S") . " s.";
     }
 
     private static function getMaxMemoryInMegaBytes(): string
