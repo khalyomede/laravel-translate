@@ -916,4 +916,26 @@ final class TranslateTest extends TestCase
             ->assertSuccessful()
             ->expectsOutputToContain("12/12");
     }
+
+    public function testDisplaysElapsedTimeAndMaxMemoryConsumption(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app",
+                    "tests/misc/resources/views",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful()
+            ->expectsOutputToContain("Time:")
+            ->expectsOutputToContain("Max memory:");
+    }
 }
