@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Commands;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Testing\PendingCommand;
 use Khalyomede\LaravelTranslate\Commands\Translate;
@@ -937,5 +938,31 @@ final class TranslateTest extends TestCase
             ->assertSuccessful()
             ->expectsOutputToContain("Time:")
             ->expectsOutputToContain("Max memory:");
+    }
+
+    public function testCanAddKeysFromTranslatables(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [],
+                "translatables" => [
+                    fn (): Collection => collect(["Red", "Blue", "Yellow"]),
+                ]
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Red" => "",
+            "Blue" => "",
+            "Yellow" => "",
+        ]);
     }
 }

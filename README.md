@@ -57,6 +57,7 @@ php artisan vendor:publish --tag "translate"
 - [3. Customize which folders to parse](#3-customize-which-folders-to-parse)
 - [4. Remove translation keys not found](#4-remove-translation-keys-not-found)
 - [5. Translate models data](#5-translate-models-data)
+- [6. Add raw array of keys](#6-add-raw-array-of-keys)
 
 ### 1. Check for missing translations
 
@@ -161,6 +162,51 @@ This assumes you translate your model like this for example:
     <option value="{{ $userType->id }}>@lang($userType->name)</option>
   @endforeach
 </select>
+```
+
+### 6. Add raw array of keys
+
+When you have something translation keys not in an Eloquent model nor a hard-coded string like `@lang("Hello world")`, but you still want to include it in the list of translation keys, you can build a custom array or Collection to give to the command.
+
+Add it like this in your "config/translate.php" file:
+
+```php
+use App\Constants\InvoiceStatus;
+
+return [
+  // ...
+  "translatables" => [
+    fn () => [ InvoiceStatus::PENDING, InvoiceStatus::SENT, InvoiceStatus::PAID ],
+  ]
+];
+```
+
+You can also return a Collection if you prefer:
+
+```php
+use App\Constants\InvoiceStatus;
+
+return [
+  // ...
+  "translatables" => [
+    fn () => collect([InvoiceStatus::PENDING, InvoiceStatus::SENT, InvoiceStatus::PAID]),
+  ]
+];
+```
+
+You can have more than one translatable:
+
+```php
+use App\Constants\InvoiceStatus;
+use App\Enums\UserRole;
+
+return [
+  // ...
+  "translatables" => [
+    fn () => collect(InvoiceStatus::PENDING, InvoiceStatus::SENT, InvoiceStatus::PAID]),
+    fn () => collect(UserRole::cases())->map(fn (UserRole $userRole): string => $userRole->toString()),
+  ]
+];
 ```
 
 ## Tests

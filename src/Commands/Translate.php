@@ -459,6 +459,7 @@ final class Translate extends Command
                 return false;
             })
             ->diff(self::keysToIgnore())
+            ->concat(self::translatableKeys())
             ->flip()
             ->mapWithKeys(fn (int $key, string $value): array => [
                 $value => "",
@@ -573,5 +574,28 @@ final class Translate extends Command
     private static function getMaxMemoryInMegaBytes(): string
     {
         return round((memory_get_peak_usage(true) / 1_024) / 1_024, 2) . " Mb";
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    private static function translatableKeys(): Collection
+    {
+        $translatables = config("translate.translatables");
+
+        assert(is_array($translatables));
+
+        /**
+         * @var Collection<int, string>
+         */
+        return collect($translatables)
+            ->map(function (callable $callback): Collection {
+                $keys = call_user_func($callback);
+
+                assert(is_array($keys));
+
+                return collect($keys);
+            })
+            ->flatten();
     }
 }
