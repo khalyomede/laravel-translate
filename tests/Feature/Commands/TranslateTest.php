@@ -869,4 +869,30 @@ final class TranslateTest extends TestCase
             'ucfirst($user->type)' => "",
         ]);
     }
+
+    public function testCanIgnoreKeys(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/app/Http/Controllers",
+                ],
+                "ignore_keys" => [
+                    "Book saved.",
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileDoesntContainJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            'Book saved.' => "",
+        ]);
+    }
 }
