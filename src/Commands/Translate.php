@@ -72,6 +72,15 @@ final class Translate extends Command
         $bar->finish();
 
         $this->info("");
+        $this->info("Filtering translation keys...");
+
+        $bar = $this->output->createProgressBar($foundKeys->count());
+
+        $foundKeys = $this->filterTranslationKeys($bar, $foundKeys);
+
+        $bar->finish();
+
+        $this->info("");
 
         // Keep track of added keys for end output
         $addedKeys = collect();
@@ -222,7 +231,7 @@ final class Translate extends Command
     /**
      * @param Collection<int, string> $filePaths
      *
-     * @return Collection<string, string>
+     * @return Collection<int, string>
      */
     private static function getAllTranslationKeys(ProgressBar $bar, Collection $filePaths): Collection
     {
@@ -436,23 +445,41 @@ final class Translate extends Command
 
         return $translationKeys
             ->concat(self::modelsTranslationKeys())
-            ->filter(fn (string $key): bool => !empty($key))
-            ->filter(function (string $key) use ($phpParser): bool {
+            ->filter(fn (string $key): bool => !empty($key));
+    }
+
+    /**
+     * @param Collection<int, string> $translationKeys
+     *
+     * @return Collection<string, string>
+     */
+    private function filterTranslationKeys(ProgressBar $bar, Collection $translationKeys): Collection
+    {
+        $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+
+        return $translationKeys
+            ->filter(function (string $key) use ($phpParser, $bar): bool {
                 $ast = [];
 
                 try {
                     $ast = $phpParser->parse("<?php $key;") ?? [];
                 } catch (Exception) {
+                    $bar->advance();
+
                     return true;
                 }
 
                 $expression = $ast[0];
 
                 if (!($expression instanceof Expression)) {
+                    $bar->advance();
+
                     return false;
                 }
 
                 if ($expression->expr instanceof ConstFetch) {
+                    $bar->advance();
+
                     return true;
                 }
 

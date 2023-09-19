@@ -25,17 +25,16 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.2.0",
-        "stillat/blade-parser": "1.*",
-        "laravel/framework": "10.*"
+        "stillat/blade-parser": "1.*"
     },
     "require-dev": {
-        "orchestra/testbench": "8.0.11",
-        "nunomaduro/collision": "7.3.3",
-        "rector/rector": "0.15.23",
-        "driftingly/rector-laravel": "0.17.0",
-        "phpstan/phpstan": "1.10.8",
-        "nunomaduro/larastan": "2.5.1",
-        "friendsofphp/php-cs-fixer": "3.15.1"
+        "orchestra/testbench": "8.11.0",
+        "nunomaduro/collision": "7.9.0",
+        "rector/rector": "0.18.3",
+        "driftingly/rector-laravel": "0.25.0",
+        "phpstan/phpstan": "1.10.35",
+        "nunomaduro/larastan": "2.6.4",
+        "friendsofphp/php-cs-fixer": "3.27.0"
     },
     "scripts": {
         "test": "testbench package:test",
@@ -43,7 +42,7 @@
         "lint": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --diff --using-cache=no --allow-risky=yes --dry-run",
         "format": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer --using-cache=no --allow-risky=yes fix",
         "security": "composer audit --locked --no-dev",
-        "updates": "composer outdated --strict --direct",
+        "updates": "composer outdated --strict --direct --ignore laravel/framework",
         "scan": "rector process --dry-run",
         "modernize": "rector process",
         "all": [
