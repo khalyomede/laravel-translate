@@ -88,6 +88,7 @@ final class TranslateTest extends TestCase
             "test 2" => "",
             "test 3" => "",
             "Unable to perform anti-bot validation." => "",
+            "New journey" => "",
         ], flags: JSON_PRETTY_PRINT);
 
         assert(is_string($content));
@@ -598,7 +599,7 @@ final class TranslateTest extends TestCase
 
         $this->artisan(Translate::class)
             ->assertSuccessful()
-            ->expectsOutputToContain("Added 21 new key(s) on each lang files.");
+            ->expectsOutputToContain("Added 22 new key(s) on each lang files.");
     }
 
     public function testDisplayOnlyNewKeysAddedToFileWithoutTakingIntoAccountCurrentExistingKeys(): void
@@ -626,6 +627,7 @@ final class TranslateTest extends TestCase
             "test" => "",
             "test 2" => "",
             "test 3" => "",
+            "New journey" => "",
         ], flags: JSON_PRETTY_PRINT);
 
         assert(is_string($content));
@@ -672,7 +674,7 @@ final class TranslateTest extends TestCase
 
         assert($command instanceof PendingCommand);
 
-        $command->expectsOutputToContain("21 key(s) would have been added (using --dry-run) on each lang files.");
+        $command->expectsOutputToContain("22 key(s) would have been added (using --dry-run) on each lang files.");
     }
 
     public function testDoesNotAddShortKeys(): void
@@ -915,7 +917,7 @@ final class TranslateTest extends TestCase
 
         $this->artisan(Translate::class)
             ->assertSuccessful()
-            ->expectsOutputToContain("12/12");
+            ->expectsOutputToContain("13/13");
     }
 
     public function testDisplaysElapsedTimeAndMaxMemoryConsumption(): void
@@ -963,6 +965,29 @@ final class TranslateTest extends TestCase
             "Red" => "",
             "Blue" => "",
             "Yellow" => "",
+        ]);
+    }
+
+    public function testCanTranslateTextStartingWithNew(): void
+    {
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [
+                    "tests/misc/resources/views/about-us"
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "New journey" => "",
         ]);
     }
 }
