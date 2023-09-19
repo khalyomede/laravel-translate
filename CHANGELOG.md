@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2023-09-19
+
 ### Fixed
 
 - The command will not hang a few seconds without showing progress anymore ([#46](https://github.com/khalyomede/laravel-translate/issues/46)).

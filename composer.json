@@ -3,7 +3,7 @@
     "description": "Translate missing keys in JSON file, CI friendly.",
     "type": "library",
     "license": "MIT",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "autoload": {
         "psr-4": {
             "Khalyomede\\LaravelTranslate\\": "src/"
