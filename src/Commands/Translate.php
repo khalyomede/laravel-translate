@@ -7,11 +7,13 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Expression;
@@ -477,7 +479,8 @@ final class Translate extends Command
                     return false;
                 }
 
-                if ($expression->expr instanceof ConstFetch) {
+                // instanceof New -> "New account", "New" is parsed as new class keyword
+                if ($expression->expr instanceof ConstFetch || $expression->expr instanceof New_) {
                     $bar->advance();
 
                     return true;
