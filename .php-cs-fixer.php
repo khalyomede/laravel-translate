@@ -16,5 +16,6 @@ return $config->setRules([
     'ordered_imports' => true,
     'ordered_traits' => true,
     'ordered_class_elements' => true,
+    "no_unused_imports" => true,
 ])
     ->setFinder($finder);
