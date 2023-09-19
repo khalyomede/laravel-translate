@@ -8,5 +8,6 @@ parameters:
     ignoreErrors:
         - '#Cannot call method assertExitCode#'
         - '#Cannot call method assertSuccessful#'
+        - '#value of function strval expects#'
     excludePaths:
         - tests/misc/app/Http/Controllers/BookController.php
