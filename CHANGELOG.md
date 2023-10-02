@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2023-09-19
+
 ### Fixed
 
 - Keys containing a colon will now be correctly detected ([#53](https://github.com/khalyomede/laravel-translate/issues/53)).
