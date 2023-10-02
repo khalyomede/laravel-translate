@@ -3,16 +3,14 @@
 namespace Khalyomede\LaravelTranslate\Commands;
 
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
-use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
-use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Expression;
@@ -71,9 +69,7 @@ final class Translate extends Command
         $this->info("");
         $this->info("Filtering translation keys...");
 
-        $bar = $this->output->createProgressBar($foundKeys->count());
-
-        $foundKeys = $this->filterTranslationKeys($bar, $foundKeys);
+        $foundKeys = $this->filterTranslationKeys($foundKeys);
 
         $bar->finish();
 
@@ -280,6 +276,7 @@ final class Translate extends Command
                     $firstArgument = $directive
                         ->arguments
                         ?->getValues()
+                        ->filter(fn (mixed $value): bool => Str::of(strval($value))->isMatch('/^\s*(\'|").*(\'|")\s*$/'))
                         ->map(fn (mixed $value): string => strval(preg_replace("/^(\"|')/", "", strval($value))))
                         ->map(fn (mixed $value): string => strval(preg_replace("/(\"|')$/", "", strval($value))))
                         ->first() ?? "";
@@ -450,39 +447,9 @@ final class Translate extends Command
      *
      * @return Collection<string, string>
      */
-    private function filterTranslationKeys(ProgressBar $bar, Collection $translationKeys): Collection
+    private function filterTranslationKeys(Collection $translationKeys): Collection
     {
-        $phpParser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
-
         return $translationKeys
-            ->filter(function (string $key) use ($phpParser, $bar): bool {
-                $ast = [];
-
-                try {
-                    $ast = $phpParser->parse("<?php $key;") ?? [];
-                } catch (Exception) {
-                    $bar->advance();
-
-                    return true;
-                }
-
-                $expression = $ast[0];
-
-                if (!($expression instanceof Expression)) {
-                    $bar->advance();
-
-                    return false;
-                }
-
-                // instanceof New -> "New account", "New" is parsed as new class keyword
-                if ($expression->expr instanceof ConstFetch || $expression->expr instanceof New_) {
-                    $bar->advance();
-
-                    return true;
-                }
-
-                return false;
-            })
             ->diff(self::keysToIgnore())
             ->concat(self::translatableKeys())
             ->flip()

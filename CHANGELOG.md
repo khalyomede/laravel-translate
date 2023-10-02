@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Keys containing a colon will now be correctly detected ([#53](https://github.com/khalyomede/laravel-translate/issues/53)).
+- The command will now detect keys aproximatively 40 times faster ([#52](https://github.com/khalyomede/laravel-translate/issues/52)).
+
 ## [0.1.1] - 2023-09-19
 
 ### Fixed

@@ -28,13 +28,13 @@
         "stillat/blade-parser": "1.*"
     },
     "require-dev": {
-        "orchestra/testbench": "8.11.0",
+        "orchestra/testbench": "8.12.1",
         "nunomaduro/collision": "7.9.0",
-        "rector/rector": "0.18.3",
-        "driftingly/rector-laravel": "0.25.0",
-        "phpstan/phpstan": "1.10.35",
+        "rector/rector": "0.18.4",
+        "driftingly/rector-laravel": "0.26.1",
+        "phpstan/phpstan": "1.10.37",
         "nunomaduro/larastan": "2.6.4",
-        "friendsofphp/php-cs-fixer": "3.27.0"
+        "friendsofphp/php-cs-fixer": "3.34.0"
     },
     "scripts": {
         "test": "testbench package:test",
