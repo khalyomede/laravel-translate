@@ -4,6 +4,8 @@ namespace Khalyomede\LaravelTranslate\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -471,15 +473,28 @@ final class Translate extends Command
          * @var Collection<int, string>
          */
         $keys = collect($models)
-            ->map(function (string $column, string $model): Collection {
+            ->map(function (string|array $columns, string $model): Collection {
+                if (is_string($columns)) {
+                    /**
+                     * @var Collection<int, string>
+                     *
+                     * @phpstan-ignore-next-line Parameter #1 $callback of function call_user_func expects callable(): mixed, array{string, 'pluck'} given.
+                     */
+                    return call_user_func([$model, "pluck"], $columns);
+                }
+                /** @phpstan-ignore-next-line Parameter #1 $callback of function call_user_func expects callable(): mixed, array{string, 'query'} given.  */
+                $query = call_user_func([$model, "query"]);
+
+                assert($query instanceof Builder);
+
                 /**
                  * @var Collection<int, string>
-                 *
-                 * @phpstan-ignore-next-line Parameter #1 $callback of function call_user_func expects callable(): mixed, array{string, 'pluck'} given.
                  */
-                $keys = call_user_func([$model, "pluck"], $column);
-
-                return $keys;
+                return $query->select($columns)
+                    ->get()
+                    /** @phpstan-ignore-next-line Parameter #1 $callback of method Illuminate\Support\Collection<(int|string),mixed>::map() expects callable(mixed, int|string): array, Closure(Illuminate\Database\Eloquent\Model): array given. */
+                    ->map(fn (Model $model): array => $model->toArray())
+                    ->flatten();
             })
             ->flatten();
 

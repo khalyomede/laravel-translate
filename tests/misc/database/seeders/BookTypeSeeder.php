@@ -13,14 +13,17 @@ final class BookTypeSeeder extends Seeder
             [
                 "id" => BookType::DRAMA,
                 "name" => "Drama",
+                "description" => "Intense human conflicts and emotions.",
             ],
             [
                 "id" => BookType::FANTASTIC,
                 "name" => "Fantastic",
+                "description" => "Magical worlds and creatures.",
             ],
             [
                 "id" => BookType::ADVENTURE,
                 "name" => "Adventure",
+                "description" => "Thrilling quests and daring journeys.",
             ],
         ]);
     }

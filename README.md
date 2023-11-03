@@ -148,6 +148,23 @@ return [
 ];
 ```
 
+If you have multiple columns for the same model, you can also pass an array:
+
+```php
+use App\Models\Post;
+
+return [
+  // ...
+  "models" => [
+    Post::class => [
+      "title",
+      "description",
+    ],
+  ],
+  // ...
+];
+```
+
 You pass it the name of the model as key, and the name of the column to pull translation from as the value.
 
 This assumes you translate your model like this for example:
