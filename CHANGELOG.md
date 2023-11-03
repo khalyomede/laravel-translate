@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-11-03
+
 ### Added
 
 - Ability to specify multiple columns to translate for a single model ([#55](https://github.com/khalyomede/laravel-translate/issues/55)).
