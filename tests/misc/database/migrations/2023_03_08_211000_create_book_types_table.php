@@ -10,6 +10,7 @@ return new class () extends Migration {
         Schema::create("book_types", function (Blueprint $table): void {
             $table->id();
             $table->string("name")->unique();
+            $table->string("description");
         });
     }
 

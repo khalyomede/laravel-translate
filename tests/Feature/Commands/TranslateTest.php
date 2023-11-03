@@ -325,9 +325,43 @@ final class TranslateTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFileContainsExactJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Adventure" => "",
             "Drama" => "",
             "Fantastic" => "",
+        ]);
+    }
+
+    public function testCanAddNewKeyFoundFromMultipleColumnsOfASingleModel(): void
+    {
+        $this->seed(BookTypeSeeder::class);
+
+        $this->app?->useLangPath(__DIR__ . "/../../misc/resources/lang");
+
+        config([
+            "translate" => [
+                "langs" => [
+                    "fr",
+                ],
+                "include" => [],
+                "models" => [
+                    BookType::class => [
+                        "name",
+                        "description",
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->artisan(Translate::class)
+            ->assertSuccessful();
+
+        $this->assertFileContainsExactJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Drama" => "",
+            "Intense human conflicts and emotions." => "",
+            "Fantastic" => "",
+            "Magical worlds and creatures." => "",
             "Adventure" => "",
+            "Thrilling quests and daring journeys." => "",
         ]);
     }
 
@@ -360,9 +394,9 @@ final class TranslateTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFileContainsExactJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Adventure" => "",
             "Drama" => "",
             "Fantastic" => "",
-            "Adventure" => "",
         ]);
     }
 
@@ -395,9 +429,9 @@ final class TranslateTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFileContainsExactJson(__DIR__ . "/../../misc/resources/lang/fr.json", [
+            "Adventure" => "",
             "Drama" => "",
             "Fantastic" => "",
-            "Adventure" => "",
             "Book copied." => "",
         ]);
     }
