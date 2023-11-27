@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -46,3 +46,30 @@ jobs:
 
       - name: Package version check
         run: docker-compose run --rm composer run updates
+
+  test_82:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: docker-compose run --rm composer82 install
+
+      - name: Test
+        run: docker-compose run --rm composer82 run test
+
+      - name: Static analysis
+        run: docker-compose run --rm composer82 run analyse
+
+      - name: Formatting
+        run: docker-compose run --rm composer82 run lint
+
+      - name: Modern code check
+        run: docker-compose run --rm composer82 run scan
+
+      - name: Package security
+        run: docker-compose run --rm composer82 run security
+
+      - name: Package version check
+        run: docker-compose run --rm composer82 run updates

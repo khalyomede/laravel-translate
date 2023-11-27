@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for PHP 8.3 ([#57](https://github.com/khalyomede/laravel-translate/issues/57)).
+
 ## [0.2.0] - 2023-11-03
 
 ### Added
